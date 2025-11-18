@@ -1,7 +1,7 @@
-name:          sdl2-image
-version:       2.0.0
-synopsis:      Bindings to SDL2_image.
-description:   Haskell bindings to SDL2_image.
+name:          sdl3-image
+version:       1.0.0
+synopsis:      Bindings to SDL3_image.
+description:   Haskell bindings to SDL3_image.
 license:       MIT
 license-file:  LICENSE
 author:        Cai Lei <cailei@live.com>, Siniša Biđin <sinisa@bidin.eu>
@@ -11,31 +11,28 @@ category:      Image, Graphics, Foreign
 build-type:    Simple
 cabal-version: >=1.10
 
-source-repository head
-  type:     git
-  location: https://github.com/sbidin/sdl2-image.git
 
 library
   ghc-options: -Wall
 
   exposed-modules:
-    SDL.Image,
-    SDL.Raw.Image
+    SDL3.Image,
+    SDL3.Raw.Image
 
   other-modules:
-    SDL.Raw.Helper
+    SDL3.Raw.Helper
 
   hs-source-dirs:
     src
 
   pkgconfig-depends:
-    sdl2 >= 2.0.3,
-    SDL2_image >= 2.0.0
+    sdl3 >= 0.0.1,
+    sdl3-image >= 1.0.0
 
   build-depends:
     base             >= 4.7 && < 5,
     bytestring       >= 0.10.4.0,
-    sdl2             >= 2.0,
+    sdl3 >= 0.0.1,
     text             >= 1.1.0.0,
     template-haskell
 
@@ -49,7 +46,7 @@ flag example
   description: Build the example executable
   default:     False
 
-executable sdl2-image-example
+executable sdl3-image-example
   ghc-options: -Wall
   hs-source-dirs: example
   main-is: Example.hs
@@ -58,8 +55,20 @@ executable sdl2-image-example
   if flag(example)
     build-depends:
       base       >= 4.7 && < 5,
-      sdl2       >= 2.0,
-      sdl2-image,
+      sdl3 >= 0.0.1,
+      sdl3-image,
       text       >= 1.1.0.0
   else
     buildable: False
+
+test-suite benwizcore-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+        test
+  ghc-options: -Wall -Wcompat -Wno-name-shadowing -Wno-missing-export-lists -Werror=missing-fields -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+        base             >= 4.7 && < 5,
+        sdl3 >= 0.0.1,
+        sdl3-image,
+        hspec            >= 2.7.1
