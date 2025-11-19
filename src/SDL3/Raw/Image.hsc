@@ -30,7 +30,6 @@ import Foreign.C.Types        (CInt(..))
 import Foreign.Ptr            (Ptr)
 import Prelude         hiding (init)
 import SDL (SDLSurface, SDLIOStream)
--- import SDL.Raw.Types          (Version, Surface, RWops)
 import SDL3.Raw.Helper         (liftF)
 
 liftF "getVersion" "IMG_Version"
@@ -47,33 +46,33 @@ liftF "getVersion" "IMG_Version"
 liftF "load" "IMG_Load"
   [t|CString -> IO (Ptr SDLSurface)|]
 
--- -- | Should the 'Ptr' 'RWops' be freed after an operation? 1 for yes, 0 for no.
--- type Free = CInt
+-- -- | Should the 'Ptr' 'IOStream' be freed after an operation? 1 for yes, 0 for no.
+type Free = CBool
 
--- liftF "load_RW" "IMG_Load_RW"
---   [t|Ptr RWops -> Free -> IO (Ptr Surface)|]
+liftF "load_IO" "IMG_Load_IO"
+  [t|Ptr SDLIOStream -> Free -> IO (Ptr SDLSurface)|]
 
--- -- | A case-insensitive desired format, e.g. @\"jpg\"@ or @\"PNG\"@.
--- type Format = CString
+-- | A case-insensitive desired format, e.g. @\"jpg\"@ or @\"PNG\"@.
+type Format = CString
 
--- liftF "loadTyped_RW" "IMG_LoadTyped_RW"
---   [t|Ptr RWops -> Free -> Format -> IO (Ptr Surface)|]
+liftF "loadTyped_IO" "IMG_LoadTyped_IO"
+  [t|Ptr SDLIOStream -> Free -> Format -> IO (Ptr SDLSurface)|]
 
--- liftF "loadCUR_RW"  "IMG_LoadCUR_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadICO_RW"  "IMG_LoadICO_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadBMP_RW"  "IMG_LoadBMP_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadPNM_RW"  "IMG_LoadPNM_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadXPM_RW"  "IMG_LoadXPM_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadXCF_RW"  "IMG_LoadXCF_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadPCX_RW"  "IMG_LoadPCX_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadGIF_RW"  "IMG_LoadGIF_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadJPG_RW"  "IMG_LoadJPG_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadTIF_RW"  "IMG_LoadTIF_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadPNG_RW"  "IMG_LoadPNG_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadTGA_RW"  "IMG_LoadTGA_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadLBM_RW"  "IMG_LoadLBM_RW"  [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadXV_RW"   "IMG_LoadXV_RW"   [t|Ptr RWops -> IO (Ptr Surface)|]
--- liftF "loadWEBP_RW" "IMG_LoadWEBP_RW" [t|Ptr RWops -> IO (Ptr Surface)|]
+liftF "loadCUR_IO"  "IMG_LoadCUR_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadICO_IO"  "IMG_LoadICO_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadBMP_IO"  "IMG_LoadBMP_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadPNM_IO"  "IMG_LoadPNM_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadXPM_IO"  "IMG_LoadXPM_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadXCF_IO"  "IMG_LoadXCF_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadPCX_IO"  "IMG_LoadPCX_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadGIF_IO"  "IMG_LoadGIF_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadJPG_IO"  "IMG_LoadJPG_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadTIF_IO"  "IMG_LoadTIF_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadPNG_IO"  "IMG_LoadPNG_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadTGA_IO"  "IMG_LoadTGA_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadLBM_IO"  "IMG_LoadLBM_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadXV_IO"   "IMG_LoadXV_IO"   [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
+liftF "loadWEBP_IO" "IMG_LoadWEBP_IO" [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
 
 -- liftF "isCUR"  "IMG_isCUR"  [t|Ptr RWops -> IO CInt|]
 -- liftF "isICO"  "IMG_isICO"  [t|Ptr RWops -> IO CInt|]

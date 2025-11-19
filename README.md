@@ -1,6 +1,7 @@
 # sdl3-image
-
+Based on https://github.com/haskell-game/sdl2-image
 #### Haskell bindings to SDL3_image
+Works with `27bb32ac51467b393687b898435062d58fd2b63d` commit of sdl-image
 
 ##### Example
 

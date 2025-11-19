@@ -135,11 +135,6 @@ data InitFlag
 --     InitTIF -> SDL.Raw.Image.IMG_INIT_TIF
 --     InitWEBP -> SDL.Raw.Image.IMG_INIT_WEBP
 
--- A helper for unmanaged 'Surface's, since it is not exposed by SDL itself.
--- unmanaged :: Ptr SDL.Raw.Surface -> Surface
--- unmanaged :: Ptr SDLSurface -> SDLSurface
--- unmanaged p = SDLSurface p Nothing
-
 {- | Loads any given file of a supported image type as a 'Surface', including
 @TGA@ if the filename ends with @\".tga\"@.
 
