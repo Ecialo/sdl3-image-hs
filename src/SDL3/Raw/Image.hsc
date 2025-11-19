@@ -17,7 +17,11 @@ documentation.
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module SDL3.Raw.Image where
+module SDL3.Raw.Image(
+  -- * Version information
+  getVersion,
+  load
+) where
 
 #include <SDL3_image/SDL_image.h>
 
@@ -40,8 +44,8 @@ liftF "getVersion" "IMG_Version"
 -- pattern IMG_INIT_WEBP = #{const IMG_INIT_WEBP}
 
 
--- liftF "load" "IMG_Load"
---   [t|CString -> IO (Ptr Surface)|]
+liftF "load" "IMG_Load"
+  [t|CString -> IO (Ptr SDLSurface)|]
 
 -- -- | Should the 'Ptr' 'RWops' be freed after an operation? 1 for yes, 0 for no.
 -- type Free = CInt

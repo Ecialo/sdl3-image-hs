@@ -29,8 +29,7 @@ module SDL3.Image (
   If you have @TGA@-formatted data, you might wish to use the functions from
   the <#tga following section> instead.
   -}
-
-  -- load,
+  load,
   -- decode,
   -- loadTexture,
   -- decodeTexture,
@@ -87,6 +86,10 @@ import System.IO.Unsafe (unsafePerformIO)
 
 -- import qualified SDL
 -- import qualified SDL.Raw
+
+import Data.Function ((&))
+import Foreign (throwIfNull)
+import SDL (SDLSurface)
 import qualified SDL3.Raw.Image as CImage
 
 {- | Initializes @SDL2_image@ by loading support for the chosen image formats.
@@ -132,10 +135,10 @@ data InitFlag
 --     InitTIF -> SDL.Raw.Image.IMG_INIT_TIF
 --     InitWEBP -> SDL.Raw.Image.IMG_INIT_WEBP
 
-{- | A helper for unmanaged 'Surface's, since it is not exposed by SDL itself.
-unmanaged :: Ptr SDL.Raw.Surface -> Surface
-unmanaged p = Surface p Nothing
--}
+-- A helper for unmanaged 'Surface's, since it is not exposed by SDL itself.
+-- unmanaged :: Ptr SDL.Raw.Surface -> Surface
+-- unmanaged :: Ptr SDLSurface -> SDLSurface
+-- unmanaged p = SDLSurface p Nothing
 
 {- | Loads any given file of a supported image type as a 'Surface', including
 @TGA@ if the filename ends with @\".tga\"@.
@@ -143,13 +146,8 @@ unmanaged p = Surface p Nothing
 If you have @TGA@ files that don't have names ending with @\".tga\"@, use
 'loadTGA' instead.
 -}
-
--- load :: (MonadIO m) => FilePath -> m Surface
--- load path =
---   fmap unmanaged
---     . throwIfNull "SDL.Image.load" "IMG_Load"
---     . liftIO
---     $ withCString path SDL.Raw.Image.load
+load :: (MonadIO m) => FilePath -> m (Ptr SDLSurface)
+load path = liftIO $ withCString path CImage.load & throwIfNull "SDL.Image.load"
 
 {- | Same as 'load', but returning a 'Texture' instead.
 

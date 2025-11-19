@@ -8,18 +8,65 @@ License     : BSD3
 module Main where
 
 import Control.Monad (unless, when)
+
+-- Used for rendererName
+
+import Control.Concurrent (threadDelay)
+import Data.Bits
+import Data.Foldable (forM_)
 import Data.IORef
-import Data.Maybe (fromMaybe) -- Used for rendererName
+import Data.Maybe (fromMaybe)
 import Data.Word (Word64)
 import SDL
+import SDL.Video
+import qualified SDL3.Image as Image
+import System.Environment (getArgs)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 
--- Key state IORefs type alias for clarity
 type KeyStates = (IORef Bool, IORef Bool, IORef Bool, IORef Bool) -- Up, Down, Left, Right
+
+actions =
+  [
+    ( "Surface load"
+    , \window renderer path -> do
+        sdlLog "Starting surface load action"
+        -- imgSurface <- Image.load path
+        -- t <- sdlCreateTextureFromSurface renderer imgSurface
+        -- case t of
+        -- Just t -> do
+        -- Clear the renderer
+        sdlSetRenderDrawColor renderer 32 32 64 255
+        sdlRenderClear renderer
+
+        -- Copy the texture to the renderer
+        -- sdlRenderTexture renderer t Nothing Nothing
+
+        -- Present the renderer
+        sdlRenderPresent renderer
+        presentSuccess <- sdlRenderPresent renderer
+        unless presentSuccess $ do
+          err <- sdlGetError
+          sdlLog $ "Warning: Failed to present renderer: " ++ err
+
+        -- Wait for a few seconds to see the result
+        sdlDelay 10000
+
+        -- Clean up
+        -- Nothing -> sdlLog "Failed to create texture from surface"
+        -- windowSurface <- sdlGetWindow
+        -- case windowSurface of
+        --   Nothing -> sdlLog "Failed to get window surface for blitting"
+        --   Just surf -> do
+        --     _ <- sdlBlitSurface imgSurface Nothing surf Nothing
+        --     sdlUpdateWindowSurface window
+    )
+  ]
 
 main :: IO ()
 main = do
+  args <- getArgs
+  let path = head args
   -- Check compiled version
   sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
   when (sdlVersionAtLeast 3 3 0) $ sdlLog "Compiled with at least SDL 3.3.0"
@@ -40,37 +87,75 @@ main = do
   mapM_ printSubsystem initializedSystems
 
   -- Create a window
-  window <- sdlCreateWindow "SDL3 Haskell Render Example" 800 600 [SDL_WINDOW_RESIZABLE]
+  let flags = [SDL_WINDOW_RESIZABLE]
+  let extractFlag (SDLWindowFlags flagVal) = flagVal
+  -- Fold using bitwise OR (|.) on the extracted CUInts
+  -- Start folding with zeroBits from Data.Bits for the correct CUInt zero
+  let combinedFlags = foldr (.|.) zeroBits (map extractFlag flags)
+  window <- sdlCreateWindowAndRenderer "SDL3 Haskell Render Example" 800 600 combinedFlags
   case window of
     Nothing -> do
       sdlLog "Failed to create window!"
       sdlQuit
       exitFailure
-    Just win -> do
+    Just (win, ren) -> do
       sdlLog "Window created successfully!"
 
       -- Create a Renderer
-      renderer <- sdlCreateRenderer win Nothing -- Let SDL choose
-      case renderer of
-        Nothing -> do
-          sdlLog "Failed to create default renderer!"
-          err <- sdlGetError
-          sdlLog $ "SDL Error: " ++ err
-          sdlDestroyWindow win
-          sdlQuit
-          exitFailure
-        Just ren -> do
-          mRendererName <- sdlGetRendererName ren
-          sdlLog $ "Created renderer: " ++ fromMaybe "Unknown" mRendererName
-          runApp win ren -- Pass window and renderer to runApp
+      -- renderer <- sdlCreateRenderer win Nothing -- Let SDL choose
+      -- case renderer of
+      -- Nothing -> do
+      --   sdlLog "Failed to create default renderer!"
+      --   err <- sdlGetError
+      --   sdlLog $ "SDL Error: " ++ err
+      --   sdlDestroyWindow win
+      --   sdlQuit
+      --   exitFailure
+      -- Just ren -> do
+      --   mRendererName <- sdlGetRendererName ren
+      --   sdlLog $ "Created renderer: " ++ fromMaybe "Unknown" mRendererName
+      runApp win ren path -- Pass window, renderer, and path to runApp
   sdlLog "Shutting down SDL..."
   sdlQuit
   sdlLog "Application terminated successfully"
   exitSuccess
 
+-- runApp :: SDLWindow -> SDLRenderer -> [String] -> IO ()
+-- runApp window renderer args = do
+--   case args of
+--     (path : _) -> do
+--       forM_ actions $ \(name, action) -> do
+--         putStrLn name
+--         sdlLog "Starting surface load action"
+--         -- imgSurface <- Image.load path
+--         -- t <- sdlCreateTextureFromSurface renderer imgSurface
+--         -- case t of
+--         -- Just t -> do
+--         -- Clear the renderer
+--         sdlSetRenderDrawColor renderer 32 32 64 255
+--         sdlRenderClear renderer
+
+--         -- Copy the texture to the renderer
+--         -- sdlRenderTexture renderer t Nothing Nothing
+
+--         -- Present the renderer
+--         sdlRenderPresent renderer
+--         presentSuccess <- sdlRenderPresent renderer
+--         unless presentSuccess $ do
+--           err <- sdlGetError
+--           sdlLog $ "Warning: Failed to present renderer: " ++ err
+
+--         -- Wait for a few seconds to see the result
+--         sdlDelay 10000
+--     _ -> sdlLog "No action specified. Usage: <action> <image_path>"
+
 -- | Encapsulate the application logic with window and renderer
-runApp :: SDLWindow -> SDLRenderer -> IO ()
-runApp win renderer = do
+runApp :: SDLWindow -> SDLRenderer -> FilePath -> IO ()
+runApp win renderer path = do
+  imgSurface <- Image.load path
+  t' <- sdlCreateTextureFromSurface renderer imgSurface
+  let t = fromMaybe (error "Failed to create texture from surface") t'
+
   startTime <- sdlGetPerformanceCounter
   freq <- sdlGetPerformanceFrequency
   deltaTimeRef <- newIORef 0.0 -- Will store delta time in seconds
@@ -84,7 +169,7 @@ runApp win renderer = do
   rightPressedRef <- newIORef False
   let keyStates = (upPressedRef, downPressedRef, leftPressedRef, rightPressedRef)
 
-  eventLoop win renderer startTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates
+  eventLoop win renderer t startTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates
 
   -- Cleanup (happens after eventLoop finishes)
   sdlLog "Destroying renderer..."
@@ -94,26 +179,32 @@ runApp win renderer = do
   sdlDestroyWindow win
   sdlLog "Window destroyed."
 
--- | Main event loop
-eventLoop :: SDLWindow -> SDLRenderer -> Word64 -> Word64 -> IORef Double -> IORef SDLFPoint -> IORef Bool -> KeyStates -> IO ()
-eventLoop window renderer lastTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates = do
+-- -- | Main event loop
+eventLoop :: SDLWindow -> SDLRenderer -> SDLTexture -> Word64 -> Word64 -> IORef Double -> IORef SDLFPoint -> IORef Bool -> KeyStates -> IO ()
+eventLoop window renderer texture lastTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates = do
   currentTime <- sdlGetPerformanceCounter
   let deltaTimeInSeconds = fromIntegral (currentTime - lastTime) / fromIntegral freq
   writeIORef deltaTimeRef deltaTimeInSeconds -- Store delta time in seconds
 
   -- Event handling: Process all pending events for this frame
+  -- sdlPumpEvents
+  -- processEvents shouldQuitRef keyStates -- This will handle multiple events
+  -- shouldQuit <- readIORef shouldQuitRef
+  -- unless shouldQuit $ do
+  -- Update game logic based on current key states and delta time
+  -- updateGameLogic rectPosRef deltaTimeRef keyStates
+
+  -- Render the scene
   sdlPumpEvents
-  processEvents shouldQuitRef keyStates -- This will handle multiple events
-  shouldQuit <- readIORef shouldQuitRef
-  unless shouldQuit $ do
-    -- Update game logic based on current key states and delta time
-    updateGameLogic rectPosRef deltaTimeRef keyStates
+  renderFrame renderer rectPosRef texture
+  -- sdlPumpEvents
+  threadDelay 1000000
 
-    -- Render the scene
-    renderFrame renderer rectPosRef
+  -- renderFrame renderer rectPosRef
+  -- sdlDelay 3000
 
-    -- Continue loop
-    eventLoop window renderer currentTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates
+  -- Continue loop
+  eventLoop window renderer texture currentTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates
 
 -- | Process all pending events from the queue for the current frame
 processEvents :: IORef Bool -> KeyStates -> IO ()
@@ -193,15 +284,19 @@ updateGameLogic rectPosRef deltaTimeRef (upRef, downRef, leftRef, rightRef) = do
     writeIORef rectPosRef (SDLFPoint newX newY)
 
 -- | Render a single frame
-renderFrame :: SDLRenderer -> IORef SDLFPoint -> IO ()
-renderFrame renderer rectPosRef = do
+renderFrame :: SDLRenderer -> IORef SDLFPoint -> SDLTexture -> IO ()
+renderFrame renderer rectPosRef texture = do
+  sdlLog "Rendering frame..."
   -- 1. Set draw color to clear color (e.g., dark blue) and clear
-  _ <- sdlSetRenderDrawColor renderer 32 32 64 255
+  setDrawColorSuccess <- sdlSetRenderDrawColor renderer 32 32 64 255
+  unless setDrawColorSuccess $ sdlLog "Warning: Failed to set draw color"
+
   clearSuccess <- sdlRenderClear renderer
   unless clearSuccess $ sdlLog "Warning: Failed to clear renderer"
 
   -- 2. Set draw color for rectangle (e.g., yellow)
-  _ <- sdlSetRenderDrawColor renderer 255 255 0 255
+  setColorSuccess <- sdlSetRenderDrawColor renderer 255 255 0 255
+  unless setColorSuccess $ sdlLog "Warning: Failed to set draw color"
 
   -- 3. Get current rectangle position
   (SDLFPoint x y) <- readIORef rectPosRef
@@ -210,8 +305,9 @@ renderFrame renderer rectPosRef = do
   let rect = SDLFRect x y 50 50 -- x, y, width, height
 
   -- 5. Draw the filled rectangle
-  fillRectSuccess <- sdlRenderFillRect renderer (Just rect)
-  unless fillRectSuccess $ sdlLog "Warning: Failed to draw filled rect"
+  sdlRenderTexture renderer texture Nothing (Just (SDLFRect x y 100 100))
+  -- fillRectSuccess <- sdlRenderFillRect renderer (Just rect)
+  -- unless fillRectSuccess $ sdlLog "Warning: Failed to draw filled rect"
 
   -- 6. Present the rendered frame
   presentSuccess <- sdlRenderPresent renderer

@@ -9,3 +9,6 @@ main = hspec $ do
         it "correct version" $ do
             v <- Image.version
             v `shouldBe` (3, 3, 0)
+        fit "can load an image" $ do
+            _ <- Image.load "test/data/test.png"
+            1 `shouldBe` 1
