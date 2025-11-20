@@ -21,7 +21,37 @@ module SDL3.Raw.Image(
   -- * Version information
   getVersion,
   load,
-  load_IO
+  load_IO,
+  loadTyped_IO,
+  loadCUR_IO,
+  loadICO_IO,
+  loadBMP_IO,
+  loadPNM_IO,
+  loadXPM_IO,
+  loadXCF_IO,
+  loadPCX_IO,
+  loadGIF_IO,
+  loadJPG_IO,
+  loadTIF_IO,
+  loadPNG_IO,
+  loadTGA_IO,
+  loadLBM_IO,
+  loadXV_IO,
+  loadWEBP_IO,
+  isCUR,
+  isICO,
+  isBMP,
+  isPNM,
+  isXPM,
+  isXCF,
+  isPCX,
+  isGIF,
+  isJPG,
+  isTIF,
+  isPNG,
+  isLBM,
+  isXV,
+  isWEBP,
 ) where
 
 #include <SDL3_image/SDL_image.h>
@@ -75,17 +105,17 @@ liftF "loadLBM_IO"  "IMG_LoadLBM_IO"  [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|
 liftF "loadXV_IO"   "IMG_LoadXV_IO"   [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
 liftF "loadWEBP_IO" "IMG_LoadWEBP_IO" [t|Ptr SDLIOStream -> IO (Ptr SDLSurface)|]
 
--- liftF "isCUR"  "IMG_isCUR"  [t|Ptr RWops -> IO CInt|]
--- liftF "isICO"  "IMG_isICO"  [t|Ptr RWops -> IO CInt|]
--- liftF "isBMP"  "IMG_isBMP"  [t|Ptr RWops -> IO CInt|]
--- liftF "isPNM"  "IMG_isPNM"  [t|Ptr RWops -> IO CInt|]
--- liftF "isXPM"  "IMG_isXPM"  [t|Ptr RWops -> IO CInt|]
--- liftF "isXCF"  "IMG_isXCF"  [t|Ptr RWops -> IO CInt|]
--- liftF "isPCX"  "IMG_isPCX"  [t|Ptr RWops -> IO CInt|]
--- liftF "isGIF"  "IMG_isGIF"  [t|Ptr RWops -> IO CInt|]
--- liftF "isJPG"  "IMG_isJPG"  [t|Ptr RWops -> IO CInt|]
--- liftF "isTIF"  "IMG_isTIF"  [t|Ptr RWops -> IO CInt|]
--- liftF "isPNG"  "IMG_isPNG"  [t|Ptr RWops -> IO CInt|]
--- liftF "isLBM"  "IMG_isLBM"  [t|Ptr RWops -> IO CInt|]
--- liftF "isXV"   "IMG_isXV"   [t|Ptr RWops -> IO CInt|]
--- liftF "isWEBP" "IMG_isWEBP" [t|Ptr RWops -> IO CInt|]
+liftF "isCUR"  "IMG_isCUR"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isICO"  "IMG_isICO"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isBMP"  "IMG_isBMP"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isPNM"  "IMG_isPNM"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isXPM"  "IMG_isXPM"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isXCF"  "IMG_isXCF"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isPCX"  "IMG_isPCX"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isGIF"  "IMG_isGIF"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isJPG"  "IMG_isJPG"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isTIF"  "IMG_isTIF"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isPNG"  "IMG_isPNG"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isLBM"  "IMG_isLBM"  [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isXV"   "IMG_isXV"   [t|Ptr SDLIOStream -> IO CBool|]
+liftF "isWEBP" "IMG_isWEBP" [t|Ptr SDLIOStream -> IO CBool|]
