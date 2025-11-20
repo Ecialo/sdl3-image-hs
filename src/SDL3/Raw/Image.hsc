@@ -20,13 +20,14 @@ documentation.
 module SDL3.Raw.Image(
   -- * Version information
   getVersion,
-  load
+  load,
+  load_IO
 ) where
 
 #include <SDL3_image/SDL_image.h>
 
 import Foreign.C.String       (CString)
-import Foreign.C.Types        (CInt(..))
+import Foreign.C.Types        (CInt(..), CBool(..))
 import Foreign.Ptr            (Ptr)
 import Prelude         hiding (init)
 import SDL (SDLSurface, SDLIOStream)

@@ -26,43 +26,6 @@ import Text.Printf (printf)
 
 type KeyStates = (IORef Bool, IORef Bool, IORef Bool, IORef Bool) -- Up, Down, Left, Right
 
-actions =
-  [
-    ( "Surface load"
-    , \window renderer path -> do
-        sdlLog "Starting surface load action"
-        -- imgSurface <- Image.load path
-        -- t <- sdlCreateTextureFromSurface renderer imgSurface
-        -- case t of
-        -- Just t -> do
-        -- Clear the renderer
-        sdlSetRenderDrawColor renderer 32 32 64 255
-        sdlRenderClear renderer
-
-        -- Copy the texture to the renderer
-        -- sdlRenderTexture renderer t Nothing Nothing
-
-        -- Present the renderer
-        sdlRenderPresent renderer
-        presentSuccess <- sdlRenderPresent renderer
-        unless presentSuccess $ do
-          err <- sdlGetError
-          sdlLog $ "Warning: Failed to present renderer: " ++ err
-
-        -- Wait for a few seconds to see the result
-        sdlDelay 10000
-
-        -- Clean up
-        -- Nothing -> sdlLog "Failed to create texture from surface"
-        -- windowSurface <- sdlGetWindow
-        -- case windowSurface of
-        --   Nothing -> sdlLog "Failed to get window surface for blitting"
-        --   Just surf -> do
-        --     _ <- sdlBlitSurface imgSurface Nothing surf Nothing
-        --     sdlUpdateWindowSurface window
-    )
-  ]
-
 main :: IO ()
 main = do
   args <- getArgs
@@ -100,20 +63,6 @@ main = do
       exitFailure
     Just (win, ren) -> do
       sdlLog "Window created successfully!"
-
-      -- Create a Renderer
-      -- renderer <- sdlCreateRenderer win Nothing -- Let SDL choose
-      -- case renderer of
-      -- Nothing -> do
-      --   sdlLog "Failed to create default renderer!"
-      --   err <- sdlGetError
-      --   sdlLog $ "SDL Error: " ++ err
-      --   sdlDestroyWindow win
-      --   sdlQuit
-      --   exitFailure
-      -- Just ren -> do
-      --   mRendererName <- sdlGetRendererName ren
-      --   sdlLog $ "Created renderer: " ++ fromMaybe "Unknown" mRendererName
       runApp win ren path -- Pass window, renderer, and path to runApp
   sdlLog "Shutting down SDL..."
   sdlQuit
@@ -302,8 +251,6 @@ renderFrame renderer rectPosRef texture = do
   (SDLFPoint x y) <- readIORef rectPosRef
 
   -- 4. Define rectangle geometry
-  let rect = SDLFRect x y 50 50 -- x, y, width, height
-
   -- 5. Draw the filled rectangle
   sdlRenderTexture renderer texture Nothing (Just (SDLFRect x y 100 100))
   -- fillRectSuccess <- sdlRenderFillRect renderer (Just rect)

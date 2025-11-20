@@ -30,8 +30,8 @@ module SDL3.Image (
   the <#tga following section> instead.
   -}
   load,
-  -- decode,
-  -- loadTexture,
+  decode,
+  loadTexture,
   -- decodeTexture,
 
   -- * Loading TGA images
@@ -58,9 +58,6 @@ module SDL3.Image (
   Format (..),
 
   -- * Other
-
-  -- initialize,
-  InitFlag (..),
   version,
   -- quit,
 ) where
@@ -89,43 +86,8 @@ import System.IO.Unsafe (unsafePerformIO)
 
 import Data.Function ((&))
 import Foreign (throwIfNull)
-import SDL (SDLSurface)
+import SDL hiding (version)
 import qualified SDL3.Raw.Image as CImage
-
-{- | Initializes @SDL2_image@ by loading support for the chosen image formats.
-Explicit initialization is optional.
-
-You should call this function if you prefer to load image support yourself,
-at a time when your process isn't as busy. Otherwise, image support will be
-loaded dynamically when you attempt to load a @JPG@, @PNG@, @TIF@ or
-@WEBP@-formatted file.
-
-You may call this function multiple times.
--}
-
--- initialize :: (Foldable f, MonadIO m) => f InitFlag -> m ()
--- initialize flags = do
---   let cint = foldl (\a b -> a .|. flagToCInt b) 0 flags
---   throwIf_
---     (\result -> cint /= 0 && cint /= result)
---     "SDL.Image.initialize"
---     "IMG_Init"
---     (SDL.Raw.Image.init cint)
-
-{- | Flags intended to be fed to 'initialize'.
-
-Each designates early loading of support for a particular image format.
--}
-data InitFlag
-  = -- | Load support for reading @JPG@ files.
-    InitJPG
-  | -- | Same, but for @PNG@ files.
-    InitPNG
-  | -- | @TIF@ files.
-    InitTIF
-  | -- | @WEBP@ files.
-    InitWEBP
-  deriving (Eq, Enum, Ord, Bounded, Generic, Read, Show)
 
 -- flagToCInt :: InitFlag -> CInt
 -- flagToCInt =
@@ -148,26 +110,27 @@ load path = liftIO $ withCString path CImage.load & throwIfNull "SDL.Image.load"
 
 For @TGA@ files not ending in ".tga", use 'loadTextureTGA' instead.
 -}
-
--- loadTexture :: (MonadIO m) => Renderer -> FilePath -> m Texture
--- loadTexture r path =
---   liftIO . bracket (load path) SDL.freeSurface $
---     SDL.createTextureFromSurface r
+loadTexture :: (MonadIO m) => SDLRenderer -> FilePath -> m (Maybe SDLTexture)
+loadTexture r path =
+  liftIO . bracket (load path) sdlDestroySurface $
+    sdlCreateTextureFromSurface r
 
 {- | Reads an image from a 'ByteString'.
 
 This will work for all supported image types, __except TGA__. If you need to
 decode a @TGA@ 'ByteString', use 'decodeTGA' instead.
 -}
+decode :: (MonadIO m) => ByteString -> m (Ptr SDLSurface)
+decode bytes = liftIO
+  . unsafeUseAsCStringLen bytes
+  $ \(cstr, len) -> do
+    iost <- sdlIOFromConstMem (castPtr cstr) (fromIntegral len)
+    CImage.load_IO iost 0
+      & throwIfNull "SDL.Image.load"
 
--- decode :: (MonadIO m) => ByteString -> m Surface
--- decode bytes = liftIO
---   . unsafeUseAsCStringLen bytes
---   $ \(cstr, len) -> do
---     rw <- rwFromConstMem (castPtr cstr) (fromIntegral len)
---     fmap unmanaged
---       . throwIfNull "SDL.Image.decode" "IMG_Load_RW"
---       $ SDL.Raw.Image.load_RW rw 0
+-- fmap unmanaged
+--   . throwIfNull "SDL.Image.decode" "IMG_Load_RW"
+--   $ SDL.Raw.Image.load_RW rw 0
 
 {- | Same as 'decode', but returning a 'Texture' instead.
 
